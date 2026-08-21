@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo2.0</title>
+    <style>
+        .completed { text-decoration: line-through; color: #888; }
+    </style>
+</head>
+<body>
+
+    <div class="todo-app">
+        <h1>Todo List</h1>
+
+        <div class="todo-form">
+            <input type="text" class="todo-input" placeholder="Новая задача">
+            <button class="add-btn">Добавить</button>
+        </div>
+
+        <div class="todo-controls">
+            <button data-filter="all">Все</button>
+            <button data-filter="active">Активные</button>
+            <button data-filter="completed">Выполненные</button>
+        </div>
+
+        <ul class="todo-list"></ul>
+
+        <div class="todo-footer">
+            <span class="todo-count">0 задач</span>
+        </div>
+    </div>
+
+<script>
+    const todoList = document.querySelector(".todo-list");
+    const todoInput = document.querySelector(".todo-input");
+    const addBtn = document.querySelector(".add-btn");
+    const todoControls = document.querySelector(".todo-controls");
+    const todoCount = document.querySelector(".todo-count");
+
+    let todos = [];
+    let currentFilter = "all";
+
+    // Функция подсчета активных задач через reduce
+    function getActiveCount(items) {
+        return items.reduce((acc, item) => {
+            return !item.completed ? acc + 1 : acc;
+        }, 0);
+    }
+
+    function loadTodos() {
+        const saved = localStorage.getItem("todos");
+        if (saved) {
+            try {
+                todos = JSON.parse(saved);
+            } catch (e) {
+                todos = [];
+            }
+        } else {
+            todos = [];
+        }
+    }
+
+    function saveAndRender() {
+        localStorage.setItem("todos", JSON.stringify(todos));
+        render();
+    }
+
+    function render() {
+        // 1. Фильтруем массив для отрисовки
+        const filteredTodos = todos.filter(item => {
+            if (currentFilter === "active") return !item.completed;
+            if (currentFilter === "completed") return item.completed;
+            return true;
+        });
+
+        // 2. Рендерим отфильтрованный список
+        const updatedArray = filteredTodos.map(item => `
+            <li>
+                <strong>${item.title}</strong><br>
+                <span>Статус: ${item.completed ? "Готово" : "В процессе"}</span><br>
+                <button data-id="${item.id}" data-action="toggle">
+                    ${item.completed ? "Отменить" : "Выполнить"}
+                </button>
+                <button data-id="${item.id}" data-action="delete">
+                    Удалить
+                </button>
+            </li>
+        `).join("");
+        
+        todoList.innerHTML = updatedArray; 
+
+        // 3. Считаем активные по полному массиву todos и обновляем DOM
+        const activeCount = getActiveCount(todos);
+        todoCount.textContent = `Осталось задач: ${activeCount}`;
+    }
+
+    // Добавление задачи
+    addBtn.addEventListener("click", () => {
+        let inputQuery = todoInput.value.trim();
+
+        if (!inputQuery) return; 
+
+        const newtodo = {
+            id: Date.now(), 
+            title: inputQuery, 
+            completed: false, 
+        }; 
+
+        todos.push(newtodo);
+        todoInput.value = ""; 
+        
+        saveAndRender();
+    });
+
+    // Делегирование: Выполнить / Удалить
+    todoList.addEventListener("click", (event) => {
+        if (!event.target.matches("button")) return;
+
+        const button = event.target;
+        const id = Number(button.dataset.id);
+        const action = button.dataset.action;
+
+        if (action === "toggle") {
+            const targetTodo = todos.find(item => item.id === id);
+            if (targetTodo) {
+                targetTodo.completed = !targetTodo.completed;
+            }
+        } else if (action === "delete") {
+            todos = todos.filter(item => item.id !== id);
+        }
+
+        saveAndRender();
+    });
+
+    // Фильтрация
+    todoControls.addEventListener("click", (event) => {
+        if (!event.target.matches("button")) return;
+
+        currentFilter = event.target.dataset.filter;
+        render();
+    });
+
+    // Запуск
+    loadTodos();
+    render();
+</script>
+</body>
+</html>

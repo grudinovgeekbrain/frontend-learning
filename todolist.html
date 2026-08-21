@@ -1,0 +1,65 @@
+<input
+  type="text"
+  class="todo-input"
+  placeholder="Введите задачу"
+/>
+
+<button class="add-btn">
+  Добавить
+</button>
+
+<ul class="todo-list"></ul>
+
+<script>
+let todos = [];
+
+const todoInput = document.querySelector(".todo-input");
+const addBtn = document.querySelector(".add-btn");
+const list = document.querySelector(".todo-list");
+
+
+function render(todosArray) {
+  const updatedArray = todosArray
+    .map(todo => `
+      <li>
+        ${todo.title}
+        <button data-id="${todo.id}">Удалить</button>
+      </li>
+    `)
+    .join("");
+
+  list.innerHTML = updatedArray;
+}
+
+
+addBtn.addEventListener("click", () => {
+  const inputValue = todoInput.value.trim();
+
+  if (!inputValue) {
+    return;
+  }
+
+  todos.push({
+    id: Date.now(),
+    title: inputValue,
+    completed: false
+  });
+
+  render(todos);
+  todoInput.value = "";
+});
+
+
+list.addEventListener("click", (event) => {
+  if (!event.target.matches("button")) {
+    return;
+  }
+
+  const id = Number(event.target.dataset.id);
+  todos = todos.filter(todo => todo.id !== id);
+
+  render(todos);
+});
+
+</script>
+

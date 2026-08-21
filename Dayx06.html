@@ -1,0 +1,103 @@
+
+<button class="sort-rating">По рейтингу</button>
+<button class="sort-year">По году</button>
+
+<input class="search-input">
+
+<ul class="movies-list"></ul>
+
+<script>
+
+const movies = [
+  { title: "Interstellar", year: 2014, rating: 8.7 },
+  { title: "Inception", year: 2010, rating: 8.8 },
+  { title: "The Batman", year: 2022, rating: 7.8 },
+  { title: "The Matrix", year: 1999, rating: 8.7 },
+  { title: "Dune", year: 2021, rating: 8.0 }
+];
+
+const searchInput = document.querySelector(".search-input")
+const sortYearBtn = document.querySelector(".sort-year")
+const sortRatingBtn = document.querySelector(".sort-rating")
+const moviesList = document.querySelector(".movies-list")
+
+let currentSort = null;
+let sortDirection = "asc";
+
+sortYearBtn.addEventListener("click", () => {
+if (sortDirection === "asc") {
+  sortDirection = "desc";
+} else {
+  sortDirection = "asc";
+}
+})
+
+searchInput.addEventListener("input", () => {
+  updateMovies();
+});
+
+sortYearBtn.addEventListener("click", () => {
+  currentSort = "year"
+    updateMovies()
+});
+  
+sortRatingBtn.addEventListener("click", ()=> {
+  currentSort = "rating" 
+  updateMovies()
+});
+
+function render(MoviesArray){
+  let stringMovie = MoviesArray 
+  .map(movie => `<li>${movie.title}</li>`)
+  .join("")
+
+  moviesList.innerHTML = stringMovie
+}
+
+function updateMovies() {
+
+  let updatedMovies = [...movies]
+  let searchQuery = searchInput.value.toLowerCase()
+  
+  updatedMovies = updatedMovies.filter(movie =>
+    movie.title.toLowerCase().includes(searchQuery)
+  );
+
+  if (currentSort === "year") {
+  updatedMovies.sort((a, b) => a.year - b.year)
+} else if (currentSort === "rating") {
+  updatedMovies.sort((a, b) => b.rating - a.rating)
+}
+
+   render(updatedMovies);
+}
+
+
+
+
+async function loadUsers() {
+  try {
+    const response = await fetch("https://example.com/users");
+
+    if (!response.ok) {
+      throw new Error(`Ошибка сервера: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    const filteredUsers = data
+      .filter(user => user.age > 20)
+      .map(user => user.name);
+
+    console.log(filteredUsers);
+  } catch (error) {
+    console.log(error.message);
+  }
+}
+
+
+
+
+
+</script>
+
